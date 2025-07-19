@@ -46,6 +46,7 @@ The project uses **feature slicing architecture**:
     - 1 **failure case** (e.g., invalid request returns `BadRequest`).
 - Use:
     - **Testcontainers** for containerized PostgreSQL.
+    - Microsoft.VisualStudio.TestTools.UnitTesting;
     - `BaseAuthApiIntegrationTest` as the base class for integration tests.
     - `TestDbContext` for inserting entities.
     - A **separate context for assertions** to avoid tracking conflicts.
