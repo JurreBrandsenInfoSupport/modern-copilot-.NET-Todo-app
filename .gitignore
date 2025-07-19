@@ -1,0 +1,52 @@
+# .NET Core
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+*.dbmdl
+*.pdb
+*.cache
+*.log
+*.vspscc
+*.vssscc
+
+# Rider
+.idea/
+*.sln.iml
+
+# Build results
+*.dll
+*.exe
+*.app
+*.out
+*.ipa
+*.msi
+*.msp
+*.msm
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# NuGet
+*.nupkg
+.nuget/
+packages/
+
+# Others
+*.DS_Store
+*.vscode/
+*.swp
+*.bak
+*.tmp
+*.orig
+
+# Markdown backup
+*.md~
