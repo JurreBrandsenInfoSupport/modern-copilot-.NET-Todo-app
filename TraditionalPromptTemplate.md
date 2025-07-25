@@ -16,13 +16,11 @@
 #### Feature Setup
 A standard feature setup file looks like this:
 ```csharp
-public class [Featurename]FeatureSetup : IFeatureSetup
+public static class [Featurename]FeatureSetup
 {
-    public void SetupFeature(IFeatureBuilder builder)
+    public void SetupFeature(this IServiceCollection services)
     {
-        builder.AddApiEndpoint<[Featurename]Endpoint>();
-        builder.AddMassTransit()
-               .WithMediatorConsumer<[Featurename]QueryHandler>();
+        services.AddScoped<IRequestHandler<Command, Entity>, Handler>();
     }
 }
 ```
