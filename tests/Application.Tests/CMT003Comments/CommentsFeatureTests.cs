@@ -21,7 +21,7 @@ namespace TodoApp.Application.Tests.CMT003Comments
         public void TestInitialize()
         {
             IntegrationTestInitialize<WebUIAssemblyLocator>(
-                [typeof(TodoApp.Application.CMT003Comments.CommentsFeatureSetup)]);
+                [typeof(CommentsFeatureSetup)]);
         }
 
         [TestMethod]

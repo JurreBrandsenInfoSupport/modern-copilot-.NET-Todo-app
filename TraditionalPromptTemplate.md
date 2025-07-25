@@ -10,8 +10,7 @@
 #### Database setup
 - The database uses Entity Framework Core with postgress
 - Related database entities are loosly coupled. Not every relation is configured in the models.
-- The database uses a custom `ApplicationDbContext` class.
-- Entities are configured in dedicated entity configuration classes in src/Infrastructure/Persistence/EntityTypeconfigurations.
+- The database uses a custom `AppDbContext` class.
 - Enities are located in src/Domain/
 
 #### Feature Setup
@@ -32,26 +31,26 @@ public class [Featurename]FeatureSetup : IFeatureSetup
 Rules:
 - The requests always follow the mediator pattern from the example.
 - Mediator messages always have a query and response object.
-- The mediator uses custom classes, not the Mediatr package.
 - All requests return content if successfull.
 - Feature files contain only one endpoint.
 - Feature files are locateded in the src/Application folder
 - The exception handling should always only return badrequest and match on innerexception.
 - Database operations occur in the feature file.
 - The type of the mediator is called Query when it is a Get-request and Command when it is a command.
+
 Here is an example:
 ```csharp
-namespace MyProject.Features.MDM032[Featurename];
+namespace ProjectNamespace.Features.FeatureModule;
 
-public class [Featurename]Endpoint : IApiEndpoint
+public class FeatureEndpoint : IApiEndpoint
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("[FeatureRoute]", async (IScopedMediator mediator) =>
+        app.MapGet("feature-route", async (IScopedMediator mediator) =>
         {
             try
             {
-                var response = await mediator.Send<[Featurename]Query, IEnumerable<[Featurename]Response>>(new [Featurename]Query());
+                var response = await mediator.Send<FeatureQuery, IEnumerable<FeatureResponse>>(new FeatureQuery());
                 return Results.Ok(response);
             }
             catch (Exception e) when (e.InnerException is InvalidOperationException)
@@ -59,26 +58,26 @@ public class [Featurename]Endpoint : IApiEndpoint
                 return Results.BadRequest(e.InnerException.Message);
             }
         })
-        .WithName(nameof(MDM032HaalKenmerkenOp))
-        .Produces<KenmerkDto>()
+        .WithName("FeatureOperationName")
+        .Produces<FeatureDto>()
         .Produces<BadRequest<string>>()
         .RequireUserAuthorization();
     }
 }
 
-public record [Featurename]Query();
+public record FeatureQuery();
 
-public class [Featurename]QueryHandler : IConsumer<[Featurename]Query>
+public class FeatureQueryHandler : IConsumer<FeatureQuery>
 {
     private readonly ApplicationDbContext _dbContext;
 
-    public [Featurename]QueryHandler(ApplicationDbContext dbContext)
+    public FeatureQueryHandler(ApplicationDbContext dbContext)
     {
         ArgumentNullException.ThrowIfNull(dbContext);
         _dbContext = dbContext;
     }
 
-    public async Task Consume(ConsumeContext<[Featurename]Query> context)
+    public async Task Consume(ConsumeContext<FeatureQuery> context)
     {
         await context.RespondAsync();
     }
@@ -97,10 +96,10 @@ public class [Featurename]QueryHandler : IConsumer<[Featurename]Query>
 
 A standard test class looks like this:
 ```csharp
-namespace MyProject.Tests.Uitval.Features.UIT006[Featurename];
+namespace ProjectNamespace.Tests.FeatureGroup.Features.FeatureModule;
 
 [TestClass]
-public class [Featurename]Tests : BaseAuthApiIntegrationTest
+public class FeatureEndpointTests : BaseAuthApiIntegrationTest
 {
     [ClassInitialize]
     public static async Task Initialize(TestContext _) => await TestClassInitialize(_);
@@ -112,11 +111,11 @@ public class [Featurename]Tests : BaseAuthApiIntegrationTest
     public void TestInitialize()
     {
         IntegrationTestInitialize<WebUIAssemblyLocator>(
-            [typeof([Featurename]FeatureSetup)]);
+            [typeof(FeatureSetup)]);
     }
 
     [TestMethod]
-    public async Task [Featurename]_ShouldReturnOk_WhenValidRequest()
+    public async Task Feature_ShouldReturnOk_WhenValidRequest()
     {
         // Arrange
         // Create entities with builder pattern
@@ -124,18 +123,18 @@ public class [Featurename]Tests : BaseAuthApiIntegrationTest
         await context.AddEntities(entities);
 
         // Act
-        var response = await TestClient.PutAsJsonAsync($"/request-route", new { });
+        var response = await TestClient.PutAsJsonAsync($"/test-route", new { });
 
         // Assert
-		//separate context for assertion
-		var dbContext = GetDbContext();
-		dbContext.Entity.FirstorDefault(x => x.Id == id).Should().NotBeNull();
+        // Separate context for assertion
+        var dbContext = GetDbContext();
+        dbContext.Entity.FirstOrDefault(x => x.Id == id).Should().NotBeNull();
 
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<[Featurename]Response>();
+        var result = await response.Content.ReadFromJsonAsync<FeatureResponse>();
         result!.DTO.Should().NotBeNull();
         result.DTO.Ean.Should().Be(...);
-        result.DTO.Bron.Should().Be(...);
+        result.DTO.Source.Should().Be(...);
     }
 }
 ```
