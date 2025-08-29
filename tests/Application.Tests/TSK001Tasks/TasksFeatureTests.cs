@@ -40,9 +40,12 @@ namespace TodoApp.tests.Application.Tests.TSK001Tasks
             // Assert
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<TaskItem>();
-            result!.Should().NotBeNull();
-            result.Title.Should().Be("Test Task Title");
-            result.IsCompleted.Should().BeFalse();
+            result.Should().NotBeNull();
+            if (result != null)
+            {
+                result.Title.Should().Be("Test Task Title");
+                result.IsCompleted.Should().BeFalse();
+            }
 
             // Verify in database
             var dbContext = GetDbContext();
@@ -98,16 +101,21 @@ namespace TodoApp.tests.Application.Tests.TSK001Tasks
             // Assert
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<List<TaskItem>>();
-            result!.Should().NotBeNull();
-            result.Should().HaveCountGreaterOrEqualTo(3);
+            result.Should().NotBeNull();
+            if (result != null)
+            {
+                result.Should().HaveCountGreaterOrEqualTo(3);
 
-            var task1 = result.FirstOrDefault(t => t.Title == "Task 1");
-            task1.Should().NotBeNull();
-            task1!.IsCompleted.Should().BeFalse();
+                var task1 = result.FirstOrDefault(t => t.Title == "Task 1");
+                task1.Should().NotBeNull();
+                if (task1 != null)
+                    task1.IsCompleted.Should().BeFalse();
 
-            var task2 = result.FirstOrDefault(t => t.Title == "Task 2");
-            task2.Should().NotBeNull();
-            task2!.IsCompleted.Should().BeTrue();
+                var task2 = result.FirstOrDefault(t => t.Title == "Task 2");
+                task2.Should().NotBeNull();
+                if (task2 != null)
+                    task2.IsCompleted.Should().BeTrue();
+            }
         }
 
         [TestMethod]
@@ -142,8 +150,33 @@ namespace TodoApp.tests.Application.Tests.TSK001Tasks
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<List<TaskItem>>();
             result.Should().NotBeNull();
-            result.Should().HaveCount(2);
-            result.All(t => t.UserId == user1.Id).Should().BeTrue();
+            if (result != null)
+            {
+                result.Should().HaveCount(2);
+                result.All(t => t.UserId == user1.Id).Should().BeTrue();
+            }
+        }
+
+        [TestMethod]
+        public async Task CreateTask_ShouldReturnBadRequest_WhenUserDoesNotExist()
+        {
+            var command = new CreateTaskCommand("Task with invalid user", 9999);
+            var response = await TestClient.PostAsJsonAsync("/api/tasks", command);
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+        }
+
+        [TestMethod]
+        public async Task GetTasksByUser_ShouldReturnEmptyList_WhenUserHasNoTasks()
+        {
+            var user = UserBuilder.Create().WithUsername("emptyuser").WithId(301).Build();
+            using var context = GetTestDbContext();
+            await context.AddEntity(user);
+
+            var response = await TestClient.GetAsync($"/api/tasks?userId={user.Id}");
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<List<TaskItem>>();
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
         }
     }
 }

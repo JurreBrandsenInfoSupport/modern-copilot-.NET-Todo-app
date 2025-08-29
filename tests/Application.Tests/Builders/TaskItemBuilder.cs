@@ -7,6 +7,7 @@ namespace TodoApp.tests.Application.Tests.Builders
         private int _id = 1;
         private string _title = "Test Task";
         private bool _isCompleted = false;
+        // Default value 0 for _userId is acceptable for tests (see PR discussion)
         private int _userId = 0;
 
         public TaskItemBuilder WithId(int id)

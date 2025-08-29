@@ -25,7 +25,7 @@ namespace TodoApp.Application.TSK001Tasks
         public async Task<TaskItem> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
         {
             var user = await _db.Users.FindAsync(request.UserId);
-            if (user == null) throw new ArgumentException("Invalid UserId.");
+            if (user == null) throw new ArgumentException($"User with ID {request.UserId} not found.");
             var task = new TaskItem { Title = request.Title, UserId = request.UserId, User = user };
             _db.Tasks.Add(task);
             await _db.SaveChangesAsync(cancellationToken);
