@@ -52,7 +52,7 @@ namespace TodoApp.tests.Application.Tests.TSK001Tasks
             var createdTask = dbContext.Tasks.FirstOrDefault(x => x.Title == "Test Task Title");
             createdTask.Should().NotBeNull();
             createdTask!.Title.Should().Be("Test Task Title");
-            createdTask.IsCompleted.Should().BeTrue();
+            createdTask.IsCompleted.Should().BeFalse();
         }
 
         [TestMethod]
