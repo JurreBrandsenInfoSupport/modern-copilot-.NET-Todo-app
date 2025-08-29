@@ -13,10 +13,31 @@ namespace TodoApp.API.Controllers
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTaskCommand command)
-            => Ok(await _mediator.Send(command));
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
-            => Ok(await _mediator.Send(new GetAllTasksQuery()));
+        public async Task<IActionResult> GetAll([FromQuery] int? userId)
+        {
+            if (userId.HasValue)
+            {
+                var result = await _mediator.Send(new GetTasksByUserQuery(userId.Value));
+                return Ok(result);
+            }
+            else
+            {
+                var result = await _mediator.Send(new GetAllTasksQuery());
+                return Ok(result);
+            }
+        }
     }
 }
