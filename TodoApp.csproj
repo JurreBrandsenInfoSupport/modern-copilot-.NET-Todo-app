@@ -19,6 +19,7 @@
     <PackageReference Include="Testcontainers" Version="3.6.0" />
     <PackageReference Include="NSubstitute" Version="5.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
+  <PackageReference Include="Microsoft.CodeCoverage" Version="17.8.0" />
   </ItemGroup>
 
 </Project>
