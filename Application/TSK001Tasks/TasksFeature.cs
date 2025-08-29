@@ -5,7 +5,17 @@ using TodoApp.Infrastructure;
 
 namespace TodoApp.Application.TSK001Tasks
 {
-    public record CreateTaskCommand(string Title) : IRequest<TaskItem>;
+    public record GetTasksByUserQuery(int UserId) : IRequest<List<TaskItem>>;
+
+    public class GetTasksByUserHandler : IRequestHandler<GetTasksByUserQuery, List<TaskItem>>
+    {
+        private readonly AppDbContext _db;
+        public GetTasksByUserHandler(AppDbContext db) => _db = db;
+
+        public async Task<List<TaskItem>> Handle(GetTasksByUserQuery request, CancellationToken cancellationToken)
+            => await _db.Tasks.Where(t => t.UserId == request.UserId).ToListAsync(cancellationToken);
+    }
+    public record CreateTaskCommand(string Title, int UserId) : IRequest<TaskItem>;
 
     public class CreateTaskHandler : IRequestHandler<CreateTaskCommand, TaskItem>
     {
@@ -14,7 +24,9 @@ namespace TodoApp.Application.TSK001Tasks
 
         public async Task<TaskItem> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
         {
-            var task = new TaskItem { Title = request.Title };
+            var user = await _db.Users.FindAsync(request.UserId);
+            if (user == null) throw new ArgumentException("Invalid UserId.");
+            var task = new TaskItem { Title = request.Title, UserId = request.UserId, User = user };
             _db.Tasks.Add(task);
             await _db.SaveChangesAsync(cancellationToken);
             return task;

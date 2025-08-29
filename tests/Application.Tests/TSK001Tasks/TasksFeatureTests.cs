@@ -27,7 +27,12 @@ namespace TodoApp.tests.Application.Tests.TSK001Tasks
         public async Task CreateTask_ShouldReturnOk_WhenValidRequest()
         {
             // Arrange
-            var command = new CreateTaskCommand("Test Task Title");
+            var user = UserBuilder.Create().WithUsername("taskuser").WithId(101).Build();
+            using (var context = GetTestDbContext())
+            {
+                await context.AddEntity(user);
+            }
+            var command = new CreateTaskCommand("Test Task Title", user.Id);
 
             // Act
             var response = await TestClient.PostAsJsonAsync("/api/tasks", command);
@@ -51,7 +56,12 @@ namespace TodoApp.tests.Application.Tests.TSK001Tasks
         public async Task CreateTask_ShouldCreateTaskInDatabase_WhenValidRequest()
         {
             // Arrange
-            var command = new CreateTaskCommand("Database Test Task");
+            var user = UserBuilder.Create().WithUsername("dbuser").WithId(102).Build();
+            using (var context = GetTestDbContext())
+            {
+                await context.AddEntity(user);
+            }
+            var command = new CreateTaskCommand("Database Test Task", user.Id);
 
             // Act
             var response = await TestClient.PostAsJsonAsync("/api/tasks", command);
@@ -111,6 +121,29 @@ namespace TodoApp.tests.Application.Tests.TSK001Tasks
             var result = await response.Content.ReadFromJsonAsync<List<TaskItem>>();
             result!.Should().NotBeNull();
             result.Should().BeOfType<List<TaskItem>>();
+        }
+        [TestMethod]
+        public async Task GetTasksByUser_ShouldReturnOnlyUserTasks()
+        {
+            var user1 = UserBuilder.Create().WithUsername("userA").WithId(201).Build();
+            var user2 = UserBuilder.Create().WithUsername("userB").WithId(202).Build();
+            var tasks = new[]
+            {
+                TaskItemBuilder.Create().WithTitle("UserA Task 1").WithId(11).WithUserId(user1.Id).Build(),
+                TaskItemBuilder.Create().WithTitle("UserA Task 2").WithId(12).WithUserId(user1.Id).Build(),
+                TaskItemBuilder.Create().WithTitle("UserB Task 1").WithId(21).WithUserId(user2.Id).Build()
+            };
+            using var context = GetTestDbContext();
+            await context.AddEntity(user1);
+            await context.AddEntity(user2);
+            await context.AddEntities(tasks);
+
+            var response = await TestClient.GetAsync($"/api/tasks?userId={user1.Id}");
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<List<TaskItem>>();
+            result.Should().NotBeNull();
+            result.Should().HaveCount(2);
+            result.All(t => t.UserId == user1.Id).Should().BeTrue();
         }
     }
 }

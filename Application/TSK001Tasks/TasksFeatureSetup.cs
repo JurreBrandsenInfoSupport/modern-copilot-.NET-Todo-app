@@ -9,6 +9,7 @@ namespace TodoApp.Application.TSK001Tasks
         {
             services.AddScoped<IRequestHandler<CreateTaskCommand, TaskItem>, CreateTaskHandler>();
             services.AddScoped<IRequestHandler<GetAllTasksQuery, List<TaskItem>>, GetAllTasksHandler>();
+            services.AddScoped<IRequestHandler<GetTasksByUserQuery, List<TaskItem>>, GetTasksByUserHandler>();
             return services;
         }
     }
