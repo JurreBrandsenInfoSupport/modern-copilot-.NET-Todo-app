@@ -19,7 +19,7 @@ capabilities, so include specific URLs and code references.
 
 ### 0. Task Analysis
 
-- Read the referenced issue ${input:issue} in `wmeints/agenttalks` GitHub repository in the project root
+- Read the referenced issue ${input:issue} in the project root
 - Extract the feature description, examples, documentation references, and considerations
 - Use this as the foundation for all subsequent research
 
