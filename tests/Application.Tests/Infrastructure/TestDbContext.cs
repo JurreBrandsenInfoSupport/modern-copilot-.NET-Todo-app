@@ -10,6 +10,7 @@ namespace TodoApp.Application.Tests.Infrastructure
         public DbSet<TaskItem> Tasks => Set<TaskItem>();
         public DbSet<User> Users => Set<User>();
         public DbSet<Comment> Comments => Set<Comment>();
+        public DbSet<BalloonAnimal> BalloonAnimals => Set<BalloonAnimal>();
 
         public async Task AddEntities<T>(IEnumerable<T> entities) where T : class
         {

@@ -1,8 +1,9 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Infrastructure;
 using TodoApp.Application.TSK001Tasks;
 using TodoApp.Application.USR002Users;
+using TodoApp.Application.BAL004BalloonAnimals;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,8 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 builder.Services.AddMediatR(typeof(Program).Assembly);
 builder.Services
     .AddTasksFeature()
-    .AddUsersFeature();
+    .AddUsersFeature()
+    .AddBalloonAnimalsFeature();
 
 builder.Services.AddControllers();
 
