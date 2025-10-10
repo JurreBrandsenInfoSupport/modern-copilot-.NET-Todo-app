@@ -10,5 +10,6 @@ namespace TodoApp.Infrastructure
         public DbSet<TaskItem> Tasks => Set<TaskItem>();
         public DbSet<User> Users => Set<User>();
         public DbSet<Comment> Comments => Set<Comment>();
+        public DbSet<TaskReminder> TaskReminders => Set<TaskReminder>();
     }
 }

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TodoApp.Application.TSK001Tasks;
+using TodoApp.Application.TSK002TaskDueDates;
 
 namespace TodoApp.API.Controllers
 {
@@ -26,9 +27,14 @@ namespace TodoApp.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int? userId)
+        public async Task<IActionResult> GetAll([FromQuery] int? userId, [FromQuery] bool? overdueOnly)
         {
-            if (userId.HasValue)
+            if (overdueOnly.HasValue && overdueOnly.Value)
+            {
+                var overdueResult = await _mediator.Send(new GetTasksWithDueDatesQuery(userId, true));
+                return Ok(overdueResult);
+            }
+            else if (userId.HasValue)
             {
                 var result = await _mediator.Send(new GetTasksByUserQuery(userId.Value));
                 return Ok(result);
@@ -39,5 +45,22 @@ namespace TodoApp.API.Controllers
                 return Ok(result);
             }
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskRequest request)
+        {
+            try
+            {
+                var command = new UpdateTaskCommand(id, request.Title, request.DueDate, request.IsCompleted);
+                var result = await _mediator.Send(command);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
+
+    public record UpdateTaskRequest(string? Title, DateTime? DueDate, bool? IsCompleted);
 }

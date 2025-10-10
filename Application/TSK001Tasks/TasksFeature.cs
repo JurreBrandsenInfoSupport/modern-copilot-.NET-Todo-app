@@ -15,7 +15,7 @@ namespace TodoApp.Application.TSK001Tasks
         public async Task<List<TaskItem>> Handle(GetTasksByUserQuery request, CancellationToken cancellationToken)
             => await _db.Tasks.Where(t => t.UserId == request.UserId).ToListAsync(cancellationToken);
     }
-    public record CreateTaskCommand(string Title, int UserId) : IRequest<TaskItem>;
+    public record CreateTaskCommand(string Title, int UserId, DateTime? DueDate = null) : IRequest<TaskItem>;
 
     public class CreateTaskHandler : IRequestHandler<CreateTaskCommand, TaskItem>
     {
@@ -26,10 +26,60 @@ namespace TodoApp.Application.TSK001Tasks
         {
             var user = await _db.Users.FindAsync(request.UserId);
             if (user == null) throw new ArgumentException($"User with ID {request.UserId} not found.");
-            var task = new TaskItem { Title = request.Title, UserId = request.UserId, User = user };
+            
+            var task = new TaskItem 
+            { 
+                Title = request.Title, 
+                UserId = request.UserId, 
+                User = user,
+                DueDate = request.DueDate
+            };
+            
             _db.Tasks.Add(task);
             await _db.SaveChangesAsync(cancellationToken);
+
+            // Create reminders if due date is provided and in the future
+            if (request.DueDate.HasValue && request.DueDate.Value > DateTime.UtcNow)
+            {
+                await CreateRemindersForTask(task.Id, request.DueDate.Value, cancellationToken);
+            }
+
             return task;
+        }
+
+        private async Task CreateRemindersForTask(int taskId, DateTime dueDate, CancellationToken cancellationToken)
+        {
+            var reminders = new List<TaskReminder>();
+
+            // One day before reminder
+            var oneDayBefore = dueDate.AddDays(-1);
+            if (oneDayBefore > DateTime.UtcNow)
+            {
+                reminders.Add(new TaskReminder
+                {
+                    TaskItemId = taskId,
+                    ScheduledDate = oneDayBefore,
+                    Type = ReminderType.OneDayBefore
+                });
+            }
+
+            // One hour before reminder
+            var oneHourBefore = dueDate.AddHours(-1);
+            if (oneHourBefore > DateTime.UtcNow)
+            {
+                reminders.Add(new TaskReminder
+                {
+                    TaskItemId = taskId,
+                    ScheduledDate = oneHourBefore,
+                    Type = ReminderType.OneHourBefore
+                });
+            }
+
+            if (reminders.Any())
+            {
+                _db.TaskReminders.AddRange(reminders);
+                await _db.SaveChangesAsync(cancellationToken);
+            }
         }
     }
 
