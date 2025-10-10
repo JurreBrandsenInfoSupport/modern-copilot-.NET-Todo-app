@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Infrastructure;
 using TodoApp.Application.TSK001Tasks;
+using TodoApp.Application.TSK002TaskDueDates;
 using TodoApp.Application.USR002Users;
+using TodoApp.Application.RMD001Reminders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,12 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 builder.Services.AddMediatR(typeof(Program).Assembly);
 builder.Services
     .AddTasksFeature()
-    .AddUsersFeature();
+    .AddTaskDueDatesFeature()
+    .AddUsersFeature()
+    .AddRemindersFeature();
+
+// Register background service
+builder.Services.AddHostedService<ReminderBackgroundService>();
 
 builder.Services.AddControllers();
 

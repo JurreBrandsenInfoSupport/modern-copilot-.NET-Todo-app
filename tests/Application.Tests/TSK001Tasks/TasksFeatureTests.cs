@@ -178,5 +178,40 @@ namespace TodoApp.tests.Application.Tests.TSK001Tasks
             result.Should().NotBeNull();
             result.Should().BeEmpty();
         }
+
+        [TestMethod]
+        public async Task CreateTask_ShouldCreateTaskWithDueDate_WhenDueDateProvided()
+        {
+            // Arrange
+            var user = UserBuilder.Create().WithUsername("duedateuser").WithId(302).Build();
+            using (var context = GetTestDbContext())
+            {
+                await context.AddEntity(user);
+            }
+            var dueDate = DateTime.UtcNow.AddDays(3);
+            var command = new CreateTaskCommand("Task with Due Date", user.Id, dueDate);
+
+            // Act
+            var response = await TestClient.PostAsJsonAsync("/api/tasks", command);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<TaskItem>();
+            result.Should().NotBeNull();
+            result!.Title.Should().Be("Task with Due Date");
+            result.DueDate.Should().BeCloseTo(dueDate, TimeSpan.FromMinutes(1));
+
+            // Verify in database
+            var dbContext = GetDbContext();
+            var createdTask = dbContext.Tasks.FirstOrDefault(x => x.Title == "Task with Due Date");
+            createdTask.Should().NotBeNull();
+            createdTask!.DueDate.Should().BeCloseTo(dueDate, TimeSpan.FromMinutes(1));
+
+            // Verify reminders were created
+            var reminders = dbContext.TaskReminders.Where(r => r.TaskItemId == createdTask.Id).ToList();
+            reminders.Should().HaveCount(2);
+            reminders.Should().Contain(r => r.Type == ReminderType.OneDayBefore);
+            reminders.Should().Contain(r => r.Type == ReminderType.OneHourBefore);
+        }
     }
 }
