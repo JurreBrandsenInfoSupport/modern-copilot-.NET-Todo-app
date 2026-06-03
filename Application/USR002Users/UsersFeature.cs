@@ -1,12 +1,16 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TodoApp.Application.Behaviours;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.Events;
 using TodoApp.Infrastructure;
 
 namespace TodoApp.Application.USR002Users
 {
-    public record RegisterUserCommand(string Username) : IRequest<User>;
+    public record RegisterUserCommand(string Username) : IRequest<User>, ICacheInvalidatingCommand
+    {
+        public IEnumerable<string> CacheKeysToInvalidate => new[] { CacheKeys.AllUsers };
+    }
 
     public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, User>
     {
@@ -24,7 +28,11 @@ namespace TodoApp.Application.USR002Users
         }
     }
 
-    public record GetAllUsersQuery() : IRequest<List<User>>;
+    public record GetAllUsersQuery() : IRequest<List<User>>, ICacheableQuery
+    {
+        public string CacheKey => CacheKeys.AllUsers;
+        public TimeSpan CacheDuration => TimeSpan.FromSeconds(30);
+    }
 
     public class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, List<User>>
     {

@@ -13,6 +13,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using TodoApp.Application.Behaviours;
 using TodoApp.Infrastructure;
 using TodoApp.Application.TSK001Tasks;
 using TodoApp.Application.USR002Users;
@@ -27,9 +28,26 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseInMemoryDatabase("TodoDb"));
 
 builder.Services.AddMediatR(typeof(Program).Assembly);
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheInvalidationBehavior<,>));
 builder.Services
     .AddTasksFeature()
     .AddUsersFeature();
+
+// Distributed cache: Redis in non-Testing environments, in-memory fallback for tests
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+else
+{
+    var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "TodoApp:";
+    });
+}
 
 builder.Services.AddApiVersioning(options =>
 {
@@ -118,8 +136,17 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddHealthChecks()
+var healthChecksBuilder = builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy("Application is running."));
+
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    healthChecksBuilder.AddRedis(
+        builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379",
+        name: "redis",
+        failureStatus: HealthStatus.Degraded,
+        tags: new[] { "ready" });
+}
 
 builder.Services.AddRateLimiter(options =>
 {

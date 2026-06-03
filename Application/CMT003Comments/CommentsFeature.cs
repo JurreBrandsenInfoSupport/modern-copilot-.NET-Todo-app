@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TodoApp.Application.Behaviours;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.Events;
 using TodoApp.Infrastructure;
@@ -7,7 +8,10 @@ using TodoApp.Infrastructure;
 namespace TodoApp.Application.CMT003Comments
 {
     // Command to add a comment
-    public record AddCommentCommand(int TaskItemId, int UserId, string Text) : IRequest<Comment>;
+    public record AddCommentCommand(int TaskItemId, int UserId, string Text) : IRequest<Comment>, ICacheInvalidatingCommand
+    {
+        public IEnumerable<string> CacheKeysToInvalidate => new[] { CacheKeys.CommentsByTask(TaskItemId) };
+    }
 
     // Handler for adding a comment
     public class AddCommentHandler : IRequestHandler<AddCommentCommand, Comment>
@@ -41,7 +45,11 @@ namespace TodoApp.Application.CMT003Comments
     }
 
     // Query to get comments for a task
-    public record GetCommentsQuery(int TaskItemId) : IRequest<List<Comment>>;
+    public record GetCommentsQuery(int TaskItemId) : IRequest<List<Comment>>, ICacheableQuery
+    {
+        public string CacheKey => CacheKeys.CommentsByTask(TaskItemId);
+        public TimeSpan CacheDuration => TimeSpan.FromSeconds(30);
+    }
 
     // Handler for retrieving comments
     public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, List<Comment>>
