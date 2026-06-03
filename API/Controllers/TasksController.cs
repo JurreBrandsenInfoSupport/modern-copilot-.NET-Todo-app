@@ -36,6 +36,20 @@ namespace TodoApp.API.Controllers
         }
 
         /// <summary>
+        /// Marks a task as completed.
+        /// </summary>
+        /// <param name="id">The task ID to complete.</param>
+        /// <returns>The completed task.</returns>
+        [HttpPut("{id}/complete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Complete(int id)
+        {
+            var result = await _mediator.Send(new CompleteTaskCommand(id));
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Retrieves all tasks, optionally filtered by user ID.
         /// </summary>
         /// <param name="userId">Optional user ID to filter tasks by assignee.</param>
