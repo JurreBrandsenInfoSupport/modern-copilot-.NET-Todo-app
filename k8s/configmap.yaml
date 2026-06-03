@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todoapp-config
+  namespace: todoapp
+  labels:
+    app.kubernetes.io/name: todoapp
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:8080"
+  Serilog__MinimumLevel__Default: "Information"

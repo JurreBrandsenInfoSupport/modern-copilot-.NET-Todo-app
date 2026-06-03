@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "todoapp.fullname" . }}-config
+  labels:
+    {{- include "todoapp.labels" . | nindent 4 }}
+data:
+  ASPNETCORE_ENVIRONMENT: {{ .Values.api.env.aspnetcoreEnvironment | quote }}
+  ASPNETCORE_URLS: "http://+:8080"
