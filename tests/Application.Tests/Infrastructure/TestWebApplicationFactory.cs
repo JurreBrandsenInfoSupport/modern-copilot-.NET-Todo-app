@@ -1,4 +1,6 @@
+using System.Net;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
@@ -31,7 +33,9 @@ namespace TodoApp.tests.Application.Tests.Infrastructure
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["Otel:Endpoint"] = "http://localhost:4317",
-                    ["OTEL_SDK_DISABLED"] = "true"
+                    ["OTEL_SDK_DISABLED"] = "true",
+                    ["Keycloak:TokenEndpoint"] = "http://fake-keycloak/token",
+                    ["Keycloak:FrontendClientId"] = "todo-frontend"
                 });
             });
 
@@ -53,6 +57,10 @@ namespace TodoApp.tests.Application.Tests.Infrastructure
                     options.DefaultAuthenticateScheme = "Test";
                     options.DefaultChallengeScheme = "Test";
                 });
+
+                // Replace the keycloak HTTP client with a fake that returns tokens
+                services.AddHttpClient("keycloak")
+                    .ConfigurePrimaryHttpMessageHandler(() => new FakeKeycloakHandler());
 
                 var serviceProvider = services.BuildServiceProvider();
                 using var scope = serviceProvider.CreateScope();
@@ -90,6 +98,49 @@ namespace TodoApp.tests.Application.Tests.Infrastructure
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, "Test");
             return Task.FromResult(AuthenticateResult.Success(ticket));
+        }
+    }
+
+    /// <summary>
+    /// Fake HTTP handler that simulates Keycloak token endpoint responses for tests.
+    /// </summary>
+    public class FakeKeycloakHandler : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var content = await request.Content!.ReadAsStringAsync(cancellationToken);
+            var formValues = System.Web.HttpUtility.ParseQueryString(content);
+            var username = formValues["username"];
+
+            // Simulate Keycloak rejecting the specific "nonexistent" user
+            if (username == "nonexistent")
+            {
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized)
+                {
+                    Content = new StringContent(
+                        """{"error":"invalid_grant","error_description":"Invalid user credentials"}""",
+                        Encoding.UTF8, "application/json")
+                };
+            }
+
+            // Generate a minimal valid JWT for testing
+            var header = Convert.ToBase64String(Encoding.UTF8.GetBytes("""{"alg":"HS256","typ":"JWT"}""")).TrimEnd('=');
+            var payload = Convert.ToBase64String(Encoding.UTF8.GetBytes(
+                $$"""{"sub":"1","preferred_username":"{{username}}","exp":9999999999}""")).TrimEnd('=');
+            var fakeToken = $"{header}.{payload}.fakesignature";
+
+            var responseJson = $$"""
+            {
+                "access_token": "{{fakeToken}}",
+                "token_type": "Bearer",
+                "expires_in": 3600
+            }
+            """;
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
+            };
         }
     }
 }

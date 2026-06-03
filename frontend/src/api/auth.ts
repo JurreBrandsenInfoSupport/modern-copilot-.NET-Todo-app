@@ -5,7 +5,10 @@ export interface TokenResponse {
   expiresAt: string
 }
 
-export async function getToken(username: string): Promise<TokenResponse> {
-  const response = await axios.post('/api/auth/token', { username })
+export async function getToken(username: string, password?: string): Promise<TokenResponse> {
+  const response = await axios.post('/api/auth/token', {
+    username,
+    password: password ?? 'demo'
+  })
   return response.data
 }

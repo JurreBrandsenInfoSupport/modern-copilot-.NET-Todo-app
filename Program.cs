@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
 using MediatR;
@@ -64,24 +63,27 @@ builder.Services.AddApiVersioning(options =>
     options.SubstituteApiVersionInUrl = true;
 });
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "ThisIsADemoSecretKeyThatShouldBeChanged123!";
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "TodoApp";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "TodoApp";
+var keycloakAuthority = builder.Configuration["Keycloak:Authority"] ?? "http://localhost:8080/realms/todoapp";
+var keycloakClientId = builder.Configuration["Keycloak:ClientId"] ?? "todo-api";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Authority = keycloakAuthority;
+        options.Audience = keycloakClientId;
+        options.RequireHttpsMetadata = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidateAudience = true,
+            ValidIssuer = builder.Configuration["Keycloak:ExternalAuthority"] ?? keycloakAuthority,
+            ValidateAudience = false,
             ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            NameClaimType = "preferred_username",
+            RoleClaimType = "realm_access.roles"
         };
     });
+
+builder.Services.AddHttpClient("keycloak");
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
