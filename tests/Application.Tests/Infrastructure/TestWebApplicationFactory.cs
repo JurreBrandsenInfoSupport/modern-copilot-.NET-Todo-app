@@ -74,6 +74,12 @@ namespace TodoApp.tests.Application.Tests.Infrastructure
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            // If no Authorization header, fail authentication (to test 401 scenarios)
+            if (!Request.Headers.ContainsKey("Authorization"))
+            {
+                return Task.FromResult(AuthenticateResult.NoResult());
+            }
+
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, "1"),

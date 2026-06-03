@@ -15,6 +15,10 @@ public class TestHooks
         _factory = new TestWebApplicationFactory<Program>();
         var client = _factory.CreateClient();
 
+        // Set a default auth header so tests pass through TestAuthHandler
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "test-token");
+
         var state = scenarioContext.ScenarioContainer.Resolve<ScenarioState>();
         state.Client = client;
     }
