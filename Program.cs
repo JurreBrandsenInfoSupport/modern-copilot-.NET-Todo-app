@@ -3,11 +3,15 @@ using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Serilog;
 using TodoApp.Infrastructure;
 using TodoApp.Application.TSK001Tasks;
 using TodoApp.Application.USR002Users;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseInMemoryDatabase("TodoDb"));
@@ -33,6 +37,7 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 app.UseCors("DefaultCorsPolicy");
+app.UseSerilogRequestLogging();
 app.MapControllers();
 
 var healthCheckOptions = new HealthCheckOptions
