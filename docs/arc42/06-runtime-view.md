@@ -71,3 +71,30 @@ sequenceDiagram
 ## Error Handling Flow
 
 When an unhandled exception occurs, the `ExceptionHandlingMiddleware` catches it, logs it via Serilog, maps it to an appropriate HTTP status code, and returns a RFC 7807 `ProblemDetails` JSON response.
+
+## Scenario 4 — Frontend Login Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant ReactSPA
+    participant AuthContext
+    participant API
+    participant PostgreSQL
+
+    User->>ReactSPA: Enter username on Login page
+    ReactSPA->>API: POST /api/auth/token {username}
+    API->>PostgreSQL: SELECT user WHERE username = ?
+    PostgreSQL-->>API: User entity
+    API->>API: Generate JWT (HMAC-SHA256)
+    API-->>ReactSPA: 200 OK {token, expiresAt}
+    ReactSPA->>AuthContext: Store JWT in memory
+    AuthContext-->>ReactSPA: Authenticated state
+
+    Note over ReactSPA,API: Subsequent requests include Bearer token
+
+    User->>ReactSPA: Navigate to Tasks page
+    ReactSPA->>API: GET /api/v1/tasks [Authorization: Bearer <token>]
+    API-->>ReactSPA: 200 OK [tasks]
+    ReactSPA->>User: Render task list
+```

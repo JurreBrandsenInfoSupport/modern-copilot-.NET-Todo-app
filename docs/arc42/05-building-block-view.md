@@ -1,9 +1,24 @@
 # 5. Building Block View
 
+## Level 0 — System Overview
+
+```mermaid
+graph LR
+    Browser([Browser]) -->|HTTP :3000| Frontend[React SPA<br/>TypeScript + Vite + Tailwind]
+    Frontend -->|REST/JSON| API[TodoApp API<br/>.NET 8]
+    API -->|TCP :5432| DB[(PostgreSQL)]
+```
+
 ## Level 1 — System Layers
 
 ```mermaid
 graph TB
+    subgraph "Frontend (React SPA)"
+        Pages[Pages<br/>Login, Dashboard, Tasks, Users, Health]
+        AuthCtx[AuthContext<br/>JWT Token Management]
+        TQ[TanStack Query<br/>Server State & Caching]
+    end
+
     subgraph "API Layer"
         Controllers[Controllers<br/>AuthController, TasksController,<br/>UsersController, CommentsController]
         Middleware[Middleware<br/>ExceptionHandlingMiddleware]
@@ -24,6 +39,9 @@ graph TB
         DB[(PostgreSQL)]
     end
 
+    Pages --> AuthCtx
+    Pages --> TQ
+    TQ -->|REST/JSON| Controllers
     Controllers --> TSK
     Controllers --> USR
     Controllers --> CMT
