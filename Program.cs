@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TodoApp.Infrastructure;
 using TodoApp.Application.TSK001Tasks;
 using TodoApp.Application.USR002Users;
+using TodoApp.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,7 @@ builder.Services
 builder.Services.AddControllers();
 
 var app = builder.Build();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapControllers();
 app.Run();
 

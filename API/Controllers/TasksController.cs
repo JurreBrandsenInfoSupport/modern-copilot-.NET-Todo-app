@@ -14,15 +14,8 @@ namespace TodoApp.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTaskCommand command)
         {
-            try
-            {
-                var result = await _mediator.Send(command);
-                return Ok(result);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
 
         [HttpGet]
