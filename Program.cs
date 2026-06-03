@@ -1,11 +1,14 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using TodoApp.Infrastructure;
 using TodoApp.Application.TSK001Tasks;
@@ -40,6 +43,26 @@ builder.Services.AddApiVersioning(options =>
     options.SubstituteApiVersionInUrl = true;
 });
 
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "ThisIsADemoSecretKeyThatShouldBeChanged123!";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "TodoApp";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "TodoApp";
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+
+builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
 // Note: In production, AllowAnyOrigin should be replaced with specific origins from configuration
@@ -70,6 +93,8 @@ var app = builder.Build();
 app.UseCors("DefaultCorsPolicy");
 app.UseSerilogRequestLogging();
 app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapControllers();
 
