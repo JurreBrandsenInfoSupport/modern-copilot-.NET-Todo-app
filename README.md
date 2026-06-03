@@ -6,7 +6,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)](docker-compose.yml)
 [![Swagger](https://img.shields.io/badge/API-Swagger%2FOpenAPI-85EA2D?logo=swagger)](http://localhost:8080/swagger)
 
-> A production-ready .NET 8 Todo application demonstrating enterprise architecture patterns, CQRS with MediatR, and feature-sliced design — all in a maintainable, testable demo.
+> A production-ready .NET 8 Todo application with a React frontend, demonstrating enterprise architecture patterns, CQRS with MediatR, and feature-sliced design — all in a maintainable, testable demo.
 
 ---
 
@@ -18,10 +18,45 @@ The goal is to provide a reference implementation that balances pragmatism with 
 
 ---
 
+## Frontend
+
+The application includes a **React Single Page Application** that provides a modern, responsive user interface.
+
+| Technology | Purpose |
+|-----------|---------|
+| React 18 | UI component library |
+| TypeScript | Type-safe development |
+| Vite | Build tool & dev server |
+| Tailwind CSS | Utility-first styling |
+| TanStack Query | Server state & caching |
+
+### Pages
+
+- **Login** — JWT authentication flow
+- **Dashboard** — Overview of tasks and activity
+- **Tasks** — Full task management with comments panel
+- **Users** — User directory
+- **Health** — System health monitoring
+
+### Running the Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Available at `http://localhost:3000` in development. Vite proxies API requests to the backend at `localhost:5000`.
+
+In production (Docker), the frontend is served via **nginx** with API proxying configured in the container.
+
+---
+
 ## Architecture
 
 ```mermaid
 graph TD
+    F[Frontend Layer<br/>React SPA] -->|REST/JSON| A
     A[API Layer<br/>Controllers & Middleware] --> B[Application Layer<br/>Feature Slices & MediatR Handlers]
     B --> C[Domain Layer<br/>Entities & Business Rules]
     B --> D[Infrastructure Layer<br/>EF Core & Persistence]
@@ -55,6 +90,11 @@ Each feature folder contains:
 | Entity Framework Core | 9.0.6 | ORM & data access |
 | MediatR | 11.0 | CQRS & mediator pattern |
 | PostgreSQL | 16 | Production database |
+| React | 18 | Frontend UI library |
+| TypeScript | 5.x | Type-safe frontend development |
+| Vite | 5.x | Frontend build tool & dev server |
+| Tailwind CSS | 3.x | Utility-first CSS framework |
+| TanStack Query | 5.x | Server state management |
 | Serilog | 8.0.3 | Structured logging |
 | Swashbuckle | 6.9.0 | Swagger/OpenAPI documentation |
 | JWT Bearer | 8.0.0 | Authentication |
@@ -85,13 +125,25 @@ dotnet run
 
 The API will be available at `http://localhost:5000` with Swagger UI at `/swagger`.
 
-**Using Docker Compose (PostgreSQL):**
+**Frontend (React SPA):**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will be available at `http://localhost:3000`. In development mode, Vite proxies API requests to `http://localhost:5000`.
+
+**Using Docker Compose (full stack with PostgreSQL):**
 
 ```bash
 docker-compose up --build
 ```
 
-The API will be available at `http://localhost:8080` with a fully configured PostgreSQL database.
+- API available at `http://localhost:8080`
+- Frontend available at `http://localhost:3000`
+- PostgreSQL on port `5432`
 
 ### Running Tests
 
@@ -138,6 +190,14 @@ Obtain a token via `POST /api/auth/token`.
 ## Project Structure
 
 ```
+├── frontend/                 # React SPA (TypeScript, Vite, Tailwind CSS)
+│   ├── src/
+│   │   ├── pages/            # Login, Dashboard, Tasks, Users, Health
+│   │   ├── components/       # Shared UI components
+│   │   ├── contexts/         # AuthContext (JWT management)
+│   │   └── api/              # API client & TanStack Query hooks
+│   ├── Dockerfile            # Multi-stage: node build → nginx serve
+│   └── package.json
 ├── API/
 │   ├── Controllers/          # Thin API controllers
 │   └── Middleware/            # Exception handling, cross-cutting concerns
@@ -151,10 +211,10 @@ Obtain a token via `POST /api/auth/token`.
 ├── tests/
 │   └── Application.Tests/    # Integration tests with Testcontainers
 ├── docs/
-│   └── implementation-plans/ # Architecture decision records
+│   └── arc42/                # Architecture documentation (Arc42)
 ├── Program.cs                # Application bootstrap & middleware pipeline
 ├── docker-compose.yml        # Container orchestration
-├── Dockerfile                # Multi-stage build
+├── Dockerfile                # Multi-stage build (API)
 └── TodoApp.sln               # Solution file
 ```
 

@@ -53,3 +53,29 @@ Configured via `Asp.Versioning` with three simultaneous version readers:
 - Header (`X-Api-Version: 1.0`)
 
 Default version is `1.0`, assumed when unspecified.
+
+## Frontend Architecture
+
+The React SPA implements several cross-cutting concerns:
+
+### JWT Token Management
+
+The `AuthContext` provides centralised authentication state management:
+- Stores the JWT token in memory (not localStorage) for security
+- Automatically includes the `Authorization: Bearer <token>` header on all authenticated API requests
+- Handles token expiry and redirects to the login page when a 401 response is received
+
+### Server State (TanStack Query)
+
+TanStack Query manages all server state with:
+- Automatic background refetching for stale data
+- Optimistic updates for responsive UI
+- Request deduplication (multiple components requesting the same data trigger a single API call)
+- Cache invalidation on mutations
+
+### Styling (Tailwind CSS)
+
+Tailwind CSS provides a consistent design language:
+- Utility-first approach eliminates custom CSS sprawl
+- Responsive design built into the class system
+- Consistent spacing, colour, and typography scales across all pages
