@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TodoApp.Application.TSK001Tasks;
@@ -5,7 +6,8 @@ using TodoApp.Application.TSK001Tasks;
 namespace TodoApp.API.Controllers
 {
     [ApiController]
-    [Route("api/tasks")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/tasks")]
     public class TasksController : ControllerBase
     {
         private readonly IMediator _mediator;

@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TodoApp.Application.USR002Users;
@@ -5,7 +6,8 @@ using TodoApp.Application.USR002Users;
 namespace TodoApp.API.Controllers
 {
     [ApiController]
-    [Route("api/users")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/users")]
     public class UsersController : ControllerBase
     {
         private readonly IMediator _mediator;
