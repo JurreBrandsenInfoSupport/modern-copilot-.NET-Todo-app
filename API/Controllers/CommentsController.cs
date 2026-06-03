@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -6,7 +7,8 @@ using TodoApp.Application.CMT003Comments;
 namespace TodoApp.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/comments")]
     [EnableRateLimiting("fixed")]
     public class CommentsController : ControllerBase
     {
