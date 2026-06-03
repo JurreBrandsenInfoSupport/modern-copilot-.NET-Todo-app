@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using TodoApp.Infrastructure;
 
@@ -7,32 +9,30 @@ namespace TodoApp.tests.Application.Tests.Infrastructure
 {
     public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
     {
+        private readonly string _databaseName;
+
+        public TestWebApplicationFactory(string? databaseName = null)
+        {
+            _databaseName = databaseName ?? $"TestDb_{Guid.NewGuid()}";
+        }
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            // Set the content root to the project directory
             builder.UseContentRoot(Directory.GetCurrentDirectory());
 
             builder.ConfigureServices(services =>
             {
-                // Remove the real database context
                 services.RemoveAll(typeof(DbContextOptions<AppDbContext>));
                 services.RemoveAll(typeof(AppDbContext));
 
-                // Add in-memory database for testing
                 services.AddDbContext<AppDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase("TestDatabase");
+                    options.UseInMemoryDatabase(_databaseName);
                 });
 
-                // Build the service provider
                 var serviceProvider = services.BuildServiceProvider();
-
-                // Create a scope to obtain a reference to the database context
                 using var scope = serviceProvider.CreateScope();
-                var scopedServices = scope.ServiceProvider;
-                var db = scopedServices.GetRequiredService<AppDbContext>();
-
-                // Ensure the database is created
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 db.Database.EnsureCreated();
             });
 
