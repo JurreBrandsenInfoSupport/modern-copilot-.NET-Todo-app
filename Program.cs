@@ -181,7 +181,19 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     ResponseWriter = healthCheckOptions.ResponseWriter
 });
 
-app.Run();
+// Seed demo user on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+    if (!db.Users.Any(u => u.Username == "demo"))
+    {
+        db.Users.Add(new TodoApp.Domain.Entities.User { Username = "demo" });
+        await db.SaveChangesAsync();
+    }
+}
+
+await app.RunAsync();
 
 // Make Program class accessible for testing
 public partial class Program { }
