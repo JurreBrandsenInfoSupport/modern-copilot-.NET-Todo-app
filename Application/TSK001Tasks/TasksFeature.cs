@@ -1,12 +1,17 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TodoApp.Application.Behaviours;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.Events;
 using TodoApp.Infrastructure;
 
 namespace TodoApp.Application.TSK001Tasks
 {
-    public record GetTasksByUserQuery(int UserId) : IRequest<List<TaskItem>>;
+    public record GetTasksByUserQuery(int UserId) : IRequest<List<TaskItem>>, ICacheableQuery
+    {
+        public string CacheKey => CacheKeys.TasksByUser(UserId);
+        public TimeSpan CacheDuration => TimeSpan.FromSeconds(30);
+    }
 
     public class GetTasksByUserHandler : IRequestHandler<GetTasksByUserQuery, List<TaskItem>>
     {
@@ -16,7 +21,14 @@ namespace TodoApp.Application.TSK001Tasks
         public async Task<List<TaskItem>> Handle(GetTasksByUserQuery request, CancellationToken cancellationToken)
             => await _db.Tasks.Where(t => t.UserId == request.UserId).ToListAsync(cancellationToken);
     }
-    public record CreateTaskCommand(string Title, int UserId) : IRequest<TaskItem>;
+    public record CreateTaskCommand(string Title, int UserId) : IRequest<TaskItem>, ICacheInvalidatingCommand
+    {
+        public IEnumerable<string> CacheKeysToInvalidate => new[]
+        {
+            CacheKeys.AllTasks,
+            CacheKeys.TasksByUser(UserId)
+        };
+    }
 
     public class CreateTaskHandler : IRequestHandler<CreateTaskCommand, TaskItem>
     {
@@ -36,7 +48,11 @@ namespace TodoApp.Application.TSK001Tasks
         }
     }
 
-    public record GetAllTasksQuery() : IRequest<List<TaskItem>>;
+    public record GetAllTasksQuery() : IRequest<List<TaskItem>>, ICacheableQuery
+    {
+        public string CacheKey => CacheKeys.AllTasks;
+        public TimeSpan CacheDuration => TimeSpan.FromSeconds(30);
+    }
 
     public class GetAllTasksHandler : IRequestHandler<GetAllTasksQuery, List<TaskItem>>
     {
@@ -47,7 +63,10 @@ namespace TodoApp.Application.TSK001Tasks
             => await _db.Tasks.ToListAsync(cancellationToken);
     }
 
-    public record CompleteTaskCommand(int TaskId) : IRequest<TaskItem>;
+    public record CompleteTaskCommand(int TaskId) : IRequest<TaskItem>, ICacheInvalidatingCommand
+    {
+        public IEnumerable<string> CacheKeysToInvalidate => new[] { CacheKeys.AllTasks };
+    }
 
     public class CompleteTaskHandler : IRequestHandler<CompleteTaskCommand, TaskItem>
     {
