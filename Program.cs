@@ -11,6 +11,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using TodoApp.Infrastructure;
 using TodoApp.Application.TSK001Tasks;
 using TodoApp.Application.USR002Users;
@@ -130,6 +132,17 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueLimit = 2;
     });
 });
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddEntityFrameworkCoreInstrumentation()
+        .AddOtlpExporter(opts => opts.Endpoint = new Uri(builder.Configuration["Otel:Endpoint"] ?? "http://localhost:4317")))
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddOtlpExporter(opts => opts.Endpoint = new Uri(builder.Configuration["Otel:Endpoint"] ?? "http://localhost:4317")));
 
 var app = builder.Build();
 app.UseSwagger();

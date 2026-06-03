@@ -5,8 +5,12 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
+      - seq
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=todoapp;Username=todoapp;Password=todoapp_dev
+      - Serilog__WriteTo__2__Name=Seq
+      - Serilog__WriteTo__2__Args__serverUrl=http://seq:5341
+      - Otel__Endpoint=http://otel-collector:4317
 
   postgres:
     image: postgres:16-alpine
@@ -18,6 +22,14 @@ services:
       - POSTGRES_PASSWORD=todoapp_dev
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  seq:
+    image: datalust/seq:latest
+    ports:
+      - "5341:5341"
+      - "8081:80"
+    environment:
+      - ACCEPT_EULA=Y
 
 volumes:
   postgres_data:
