@@ -154,6 +154,40 @@ dotnet test
 
 Tests use **Testcontainers** to spin up isolated PostgreSQL instances, ensuring reliable integration testing without external dependencies.
 
+### E2E Tests (Playwright)
+
+The frontend includes end-to-end tests using [Playwright](https://playwright.dev/) that verify full user flows against the running application.
+
+**Using the helper script (Windows):**
+
+```powershell
+# First run — installs deps and Playwright browsers
+./scripts/run-e2e.ps1 -Install
+
+# Subsequent runs
+./scripts/run-e2e.ps1
+
+# Run with browser visible
+./scripts/run-e2e.ps1 -Headed
+```
+
+**Manual steps:**
+
+```bash
+# Terminal 1 — start the API
+dotnet run --urls http://localhost:5000
+
+# Terminal 2 — start the frontend
+cd frontend
+npm run dev
+
+# Terminal 3 — run E2E tests
+cd frontend
+npx playwright test
+```
+
+E2E tests also run automatically in CI on every pull request via the `E2E Tests` workflow.
+
 ---
 
 ## API Documentation
