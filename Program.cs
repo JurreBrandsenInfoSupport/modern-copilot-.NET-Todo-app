@@ -16,7 +16,17 @@ builder.Services
 
 builder.Services.AddControllers();
 
+// Note: In production, AllowAnyOrigin should be replaced with specific origins from configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DefaultCorsPolicy", policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
+app.UseCors("DefaultCorsPolicy");
 app.MapControllers();
 app.Run();
 
