@@ -11,7 +11,7 @@ interface CommentsPanelProps {
 
 export default function CommentsPanel({ taskId, onClose }: CommentsPanelProps) {
   const [text, setText] = useState('')
-  const { username } = useAuth()
+  const { userId } = useAuth()
   const queryClient = useQueryClient()
 
   const { data: comments = [], isLoading } = useQuery({
@@ -20,7 +20,7 @@ export default function CommentsPanel({ taskId, onClose }: CommentsPanelProps) {
   })
 
   const mutation = useMutation({
-    mutationFn: () => createComment(taskId, username || '', text),
+    mutationFn: () => createComment(taskId, userId || '', text),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comments', taskId] })
       setText('')

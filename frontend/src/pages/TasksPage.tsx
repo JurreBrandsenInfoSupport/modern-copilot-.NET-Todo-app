@@ -106,7 +106,7 @@ export default function TasksPage() {
         ) : (
           <div className="divide-y divide-gray-100">
             {tasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+              <div key={task.id} data-testid={`task-${task.id}`} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3">
                   {task.isCompleted ? (
                     <CheckCircle2 size={22} className="text-green-500" />
@@ -114,6 +114,7 @@ export default function TasksPage() {
                     <button
                       onClick={() => completeMutation.mutate(task.id)}
                       className="text-gray-300 hover:text-green-500 transition-colors"
+                      aria-label="Complete task"
                     >
                       <Circle size={22} />
                     </button>
@@ -121,9 +122,6 @@ export default function TasksPage() {
                   <div>
                     <p className={`font-medium ${task.isCompleted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                       {task.title}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {new Date(task.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -136,8 +134,9 @@ export default function TasksPage() {
                     {task.isCompleted ? 'Completed' : 'Pending'}
                   </span>
                   <button
-                    onClick={() => setActiveTaskId(task.id)}
+                    onClick={() => setActiveTaskId(String(task.id))}
                     className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                    aria-label="View comments"
                   >
                     <MessageSquare size={18} />
                   </button>

@@ -51,7 +51,7 @@ export default function Layout() {
             <button
               onClick={handleLogout}
               className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-              title="Logout"
+              aria-label="Logout"
             >
               <LogOut size={18} />
             </button>

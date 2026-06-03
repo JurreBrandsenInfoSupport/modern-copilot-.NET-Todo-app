@@ -1,7 +1,7 @@
 import client from './client'
 
 export interface User {
-  id: string
+  id: number
   username: string
 }
 

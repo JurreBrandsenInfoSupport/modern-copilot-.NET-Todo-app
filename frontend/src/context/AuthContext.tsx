@@ -3,15 +3,26 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 interface AuthContextType {
   token: string | null
   username: string | null
+  userId: string | null
   login: (token: string, username: string) => void
   logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+function parseJwtPayload(token: string): Record<string, string> {
+  try {
+    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    return JSON.parse(atob(base64))
+  } catch {
+    return {}
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'))
   const [username, setUsername] = useState<string | null>(() => localStorage.getItem('username'))
+  const [userId, setUserId] = useState<string | null>(() => localStorage.getItem('userId'))
 
   useEffect(() => {
     if (token) {
@@ -29,18 +40,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [username])
 
+  useEffect(() => {
+    if (userId) {
+      localStorage.setItem('userId', userId)
+    } else {
+      localStorage.removeItem('userId')
+    }
+  }, [userId])
+
   const login = (newToken: string, newUsername: string) => {
     setToken(newToken)
     setUsername(newUsername)
+    const payload = parseJwtPayload(newToken)
+    setUserId(payload.sub || null)
   }
 
   const logout = () => {
     setToken(null)
     setUsername(null)
+    setUserId(null)
   }
 
   return (
-    <AuthContext.Provider value={{ token, username, login, logout }}>
+    <AuthContext.Provider value={{ token, username, userId, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
