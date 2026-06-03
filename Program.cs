@@ -23,8 +23,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
-builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseInMemoryDatabase("TodoDb"));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (builder.Environment.IsEnvironment("Testing") || string.IsNullOrEmpty(connectionString))
+{
+    builder.Services.AddDbContext<AppDbContext>(opt =>
+        opt.UseInMemoryDatabase("TodoDb"));
+}
+else
+{
+    builder.Services.AddDbContext<AppDbContext>(opt =>
+        opt.UseNpgsql(connectionString));
+}
 
 builder.Services.AddMediatR(typeof(Program).Assembly);
 builder.Services
@@ -181,12 +190,21 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     ResponseWriter = healthCheckOptions.ResponseWriter
 });
 
-// Seed demo user on startup (skip in test environment)
+// Apply migrations and seed demo user on startup (skip in test environment)
 if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+
+    if (db.Database.IsRelational())
+    {
+        await db.Database.MigrateAsync();
+    }
+    else
+    {
+        db.Database.EnsureCreated();
+    }
+
     if (!db.Users.Any(u => u.Username == "demo"))
     {
         db.Users.Add(new TodoApp.Domain.Entities.User { Username = "demo" });
