@@ -16,15 +16,8 @@ namespace TodoApp.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddComment([FromBody] AddCommentCommand command)
         {
-            try
-            {
-                var comment = await _mediator.Send(command);
-                return Ok(comment);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var comment = await _mediator.Send(command);
+            return Ok(comment);
         }
 
         [HttpGet]
