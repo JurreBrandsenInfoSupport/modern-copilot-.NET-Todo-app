@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Domain.Entities;
+using TodoApp.Domain.Events;
 using TodoApp.Infrastructure;
 
 namespace TodoApp.Application.CMT003Comments
@@ -12,7 +13,8 @@ namespace TodoApp.Application.CMT003Comments
     public class AddCommentHandler : IRequestHandler<AddCommentCommand, Comment>
     {
         private readonly AppDbContext _db;
-        public AddCommentHandler(AppDbContext db) => _db = db;
+        private readonly IPublisher _publisher;
+        public AddCommentHandler(AppDbContext db, IPublisher publisher) { _db = db; _publisher = publisher; }
 
         public async Task<Comment> Handle(AddCommentCommand request, CancellationToken cancellationToken)
         {
@@ -33,6 +35,7 @@ namespace TodoApp.Application.CMT003Comments
             };
             _db.Comments.Add(comment);
             await _db.SaveChangesAsync(cancellationToken);
+            await _publisher.Publish(new CommentAddedEvent(comment.Id, comment.TaskItemId, comment.UserId, comment.Text), cancellationToken);
             return comment;
         }
     }

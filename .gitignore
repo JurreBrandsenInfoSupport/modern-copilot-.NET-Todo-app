@@ -50,3 +50,4 @@ packages/
 
 # Markdown backup
 *.md~
+logs/

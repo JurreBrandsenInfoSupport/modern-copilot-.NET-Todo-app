@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Domain.Entities;
+using TodoApp.Domain.Events;
 using TodoApp.Infrastructure;
 
 namespace TodoApp.Application.USR002Users
@@ -10,13 +11,15 @@ namespace TodoApp.Application.USR002Users
     public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, User>
     {
         private readonly AppDbContext _db;
-        public RegisterUserHandler(AppDbContext db) => _db = db;
+        private readonly IPublisher _publisher;
+        public RegisterUserHandler(AppDbContext db, IPublisher publisher) { _db = db; _publisher = publisher; }
 
         public async Task<User> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
             var user = new User { Username = request.Username };
             _db.Users.Add(user);
             await _db.SaveChangesAsync(cancellationToken);
+            await _publisher.Publish(new UserRegisteredEvent(user.Id, user.Username), cancellationToken);
             return user;
         }
     }
