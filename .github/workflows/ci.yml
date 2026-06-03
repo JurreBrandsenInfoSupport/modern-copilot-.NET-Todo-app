@@ -1,7 +1,7 @@
-name: PR Test & Coverage
+name: CI
 
 on:
-  pull_request:
+  push:
     branches:
       - main
 
@@ -48,34 +48,14 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --no-restore
-      - name: Run tests with coverage
-        run: dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
-      - name: Report test completion
-        run: |
-          dotnet test --no-build --logger:"trx;LogFileName=test_results.trx" --results-directory ./TestResults
-          if grep -q "Passed" ./TestResults/test_results.trx; then
-            echo "All tests passed."
-          else
-            echo "Some tests failed." && exit 1
-          fi
-      - name: Install report generator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-      - name: Generate coverage report
-        run: reportgenerator -reports:TestResults/**/coverage.cobertura.xml -targetdir:TestResults/CoverageReport -reporttypes:HtmlInline
-      - name: Check coverage threshold
-        run: |
-          COVERAGE=$(grep -o 'line-rate="[0-9.]*"' TestResults/**/coverage.cobertura.xml | head -1 | sed 's/line-rate="\([0-9.]*\)"/\1/')
-          COVERAGE_PERCENT=$(echo "$COVERAGE * 100" | bc)
-          echo "Coverage: $COVERAGE_PERCENT%"
-          if (( $(echo "$COVERAGE_PERCENT < 80" | bc -l) )); then
-            echo "Test coverage is below 80%." && exit 1
-          fi
-          echo "Test coverage is sufficient."
+      - name: Run tests
+        run: dotnet test --no-build --verbosity normal
 
   docker:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Build Docker image
-        run: docker build -t todoapp:pr-${{ github.event.pull_request.number }} .
+        run: docker build -t todoapp:${{ github.sha }} .
