@@ -30,10 +30,20 @@ public class TaskSteps
     }
 
     [When("I create a task with title {string} for the user")]
+    [Given("I create a task with title {string} for the user")]
     public async Task WhenICreateATaskWithTitleForTheUser(string title)
     {
-        _state.Response = await _state.Client.PostAsJsonAsync("/api/v1/tasks",
+        var response = await _state.Client.PostAsJsonAsync("/api/v1/tasks",
             new { Title = title, UserId = _state.CurrentUserId });
+        _state.Response = response;
+
+        // Also store the task ID if creation succeeded
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            var task = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+            _state.CurrentTaskId = task.GetProperty("id").GetInt32();
+        }
     }
 
     [When("I create a task with title {string} for user id {int}")]

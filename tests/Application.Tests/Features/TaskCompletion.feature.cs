@@ -19,22 +19,22 @@ namespace Application.Tests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class CommentManagementFeature : object, Xunit.IClassFixture<CommentManagementFeature.FixtureData>, Xunit.IAsyncLifetime
+    public partial class TaskCompletionFeature : object, Xunit.IClassFixture<TaskCompletionFeature.FixtureData>, Xunit.IAsyncLifetime
     {
         
         private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Comment Management", "  As a user of the Todo application\r\n  I want to add comments to tasks\r\n  So that" +
-                " I can collaborate with others", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Task Completion", "  As a user of the Todo application\r\n  I want to mark tasks as complete\r\n  So tha" +
+                "t I can track my progress", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
-#line 1 "Comments.feature"
+#line 1 "TaskCompletion.feature"
 #line hidden
         
-        public CommentManagementFeature(CommentManagementFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public TaskCompletionFeature(TaskCompletionFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
         }
@@ -91,13 +91,10 @@ namespace Application.Tests.Features
     await testRunner.GivenAsync("the application is running", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 8
-    await testRunner.AndAsync("a user \"commentuser\" exists", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("a user \"worker\" exists", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 9
-    await testRunner.AndAsync("I am authenticated as \"commentuser\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 10
-    await testRunner.AndAsync("a task \"Commentable task\" exists for the user", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("I am authenticated as \"worker\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
         }
         
@@ -111,15 +108,15 @@ namespace Application.Tests.Features
             await this.TestTearDownAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Add a comment to a task")]
-        [Xunit.TraitAttribute("FeatureTitle", "Comment Management")]
-        [Xunit.TraitAttribute("Description", "Add a comment to a task")]
-        public async System.Threading.Tasks.Task AddACommentToATask()
+        [Xunit.SkippableFactAttribute(DisplayName="Complete an existing task")]
+        [Xunit.TraitAttribute("FeatureTitle", "Task Completion")]
+        [Xunit.TraitAttribute("Description", "Complete an existing task")]
+        public async System.Threading.Tasks.Task CompleteAnExistingTask()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Add a comment to a task", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 12
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Complete an existing task", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 11
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -132,27 +129,30 @@ namespace Application.Tests.Features
 #line 6
   await this.FeatureBackgroundAsync();
 #line hidden
+#line 12
+    await testRunner.GivenAsync("a task \"Finish report\" exists for the user", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
 #line 13
-    await testRunner.WhenAsync("I add a comment \"Great progress!\" to the task", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+    await testRunner.WhenAsync("I complete the task", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 14
     await testRunner.ThenAsync("the response status code should be 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 15
-    await testRunner.AndAsync("the response should contain a comment with text \"Great progress!\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("the task should be marked as completed", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Get comments for a task")]
-        [Xunit.TraitAttribute("FeatureTitle", "Comment Management")]
-        [Xunit.TraitAttribute("Description", "Get comments for a task")]
-        public async System.Threading.Tasks.Task GetCommentsForATask()
+        [Xunit.SkippableFactAttribute(DisplayName="Complete a non-existent task fails")]
+        [Xunit.TraitAttribute("FeatureTitle", "Task Completion")]
+        [Xunit.TraitAttribute("Description", "Complete a non-existent task fails")]
+        public async System.Threading.Tasks.Task CompleteANon_ExistentTaskFails()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Get comments for a task", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Complete a non-existent task fails", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 17
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -167,81 +167,47 @@ namespace Application.Tests.Features
   await this.FeatureBackgroundAsync();
 #line hidden
 #line 18
-    await testRunner.GivenAsync("a comment \"First comment\" exists on the task", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+    await testRunner.WhenAsync("I complete task with id 9999", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 19
-    await testRunner.AndAsync("a comment \"Second comment\" exists on the task", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.ThenAsync("the response status code should be 404", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 20
-    await testRunner.WhenAsync("I request comments for the task", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Complete an already completed task")]
+        [Xunit.TraitAttribute("FeatureTitle", "Task Completion")]
+        [Xunit.TraitAttribute("Description", "Complete an already completed task")]
+        public async System.Threading.Tasks.Task CompleteAnAlreadyCompletedTask()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Complete an already completed task", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 21
-    await testRunner.ThenAsync("the response status code should be 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 6
+  await this.FeatureBackgroundAsync();
 #line hidden
 #line 22
-    await testRunner.AndAsync("the response should contain 2 comments", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.GivenAsync("a task \"Already done\" exists for the user", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Add empty comment fails")]
-        [Xunit.TraitAttribute("FeatureTitle", "Comment Management")]
-        [Xunit.TraitAttribute("Description", "Add empty comment fails")]
-        public async System.Threading.Tasks.Task AddEmptyCommentFails()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Add empty comment fails", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 23
+    await testRunner.AndAsync("the task is already completed", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
 #line 24
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 6
-  await this.FeatureBackgroundAsync();
+    await testRunner.WhenAsync("I complete the task", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 25
-    await testRunner.WhenAsync("I add a comment \"\" to the task", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 26
-    await testRunner.ThenAsync("the response status code should be 400", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Add comment to non-existent task fails")]
-        [Xunit.TraitAttribute("FeatureTitle", "Comment Management")]
-        [Xunit.TraitAttribute("Description", "Add comment to non-existent task fails")]
-        public async System.Threading.Tasks.Task AddCommentToNon_ExistentTaskFails()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Add comment to non-existent task fails", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 28
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 6
-  await this.FeatureBackgroundAsync();
-#line hidden
-#line 29
-    await testRunner.WhenAsync("I add a comment \"Orphan comment\" to task id 9999", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 30
-    await testRunner.ThenAsync("the response status code should be 400", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("the response status code should be 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -254,12 +220,12 @@ namespace Application.Tests.Features
             
             async System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
             {
-                await CommentManagementFeature.FeatureSetupAsync();
+                await TaskCompletionFeature.FeatureSetupAsync();
             }
             
             async System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
             {
-                await CommentManagementFeature.FeatureTearDownAsync();
+                await TaskCompletionFeature.FeatureTearDownAsync();
             }
         }
     }
