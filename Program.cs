@@ -181,9 +181,10 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     ResponseWriter = healthCheckOptions.ResponseWriter
 });
 
-// Seed demo user on startup
-using (var scope = app.Services.CreateScope())
+// Seed demo user on startup (skip in test environment)
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
     if (!db.Users.Any(u => u.Username == "demo"))

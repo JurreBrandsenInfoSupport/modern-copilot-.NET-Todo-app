@@ -1,5 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
+COPY Directory.Build.props Directory.Packages.props ./
 COPY TodoApp.csproj .
 RUN dotnet restore TodoApp.csproj
 COPY . .
