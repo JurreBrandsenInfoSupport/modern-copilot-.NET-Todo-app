@@ -1,0 +1,27 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your TodoApp has been deployed to the {{ .Release.Namespace }} namespace.
+
+{{- if .Values.ingress.enabled }}
+
+The application is accessible via ingress:
+  http://{{ .Values.ingress.host }}
+
+Make sure your ingress controller is running and DNS/hosts file is configured:
+  echo "$(kubectl get ingress {{ include "todoapp.fullname" . }}-ingress -n {{ .Release.Namespace }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}') {{ .Values.ingress.host }}" | sudo tee -a /etc/hosts
+{{- else }}
+
+To access the application, use port-forwarding:
+
+  # Frontend
+  kubectl port-forward svc/{{ include "todoapp.fullname" . }}-frontend 3000:80 -n {{ .Release.Namespace }}
+
+  # API
+  kubectl port-forward svc/{{ include "todoapp.fullname" . }}-api 8080:80 -n {{ .Release.Namespace }}
+{{- end }}
+
+To check the status of your deployment:
+  kubectl get pods -n {{ .Release.Namespace }}
+
+To view API health:
+  kubectl exec -it deploy/{{ include "todoapp.fullname" . }}-api -n {{ .Release.Namespace }} -- curl -s http://localhost:8080/health

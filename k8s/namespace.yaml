@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todoapp
+  labels:
+    app.kubernetes.io/name: todoapp
+    app.kubernetes.io/managed-by: kubectl

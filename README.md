@@ -99,7 +99,9 @@ Each feature folder contains:
 | Swashbuckle | 6.9.0 | Swagger/OpenAPI documentation |
 | JWT Bearer | 8.0.0 | Authentication |
 | Asp.Versioning | 8.1.0 | API versioning |
-| Docker Compose | — | Container orchestration |
+| Docker Compose | — | Container orchestration (development) |
+| Kubernetes | — | Container orchestration (production) |
+| Helm | 3.x | Kubernetes package management |
 | Testcontainers | 3.6.0 | Integration test infrastructure |
 | FluentAssertions | 6.12.0 | Expressive test assertions |
 | NSubstitute | 5.1.0 | Mocking framework |
@@ -208,15 +210,87 @@ Obtain a token via `POST /api/auth/token`.
 ├── Domain/
 │   └── Entities/             # Domain models (TaskItem, User, Comment)
 ├── Infrastructure/           # AppDbContext, entity configurations
+├── k8s/                      # Raw Kubernetes manifests (reference)
+├── charts/
+│   └── todoapp/              # Helm chart for production deployment
 ├── tests/
 │   └── Application.Tests/    # Integration tests with Testcontainers
 ├── docs/
 │   └── arc42/                # Architecture documentation (Arc42)
+├── scripts/                  # Deployment and utility scripts
 ├── Program.cs                # Application bootstrap & middleware pipeline
-├── docker-compose.yml        # Container orchestration
+├── docker-compose.yml        # Container orchestration (development)
 ├── Dockerfile                # Multi-stage build (API)
 └── TodoApp.sln               # Solution file
 ```
+
+---
+
+## Kubernetes Deployment
+
+The application includes Kubernetes manifests and a Helm chart for production-grade container orchestration.
+
+### Prerequisites
+
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) configured for your cluster
+- [Helm 3](https://helm.sh/docs/intro/install/)
+- A running Kubernetes cluster (local: [minikube](https://minikube.sigs.k8s.io/) / [kind](https://kind.sigs.k8s.io/), cloud: AKS/EKS/GKE)
+- [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/) installed in the cluster
+
+### Quick Deploy with Helm
+
+```powershell
+# Deploy using the provided script
+.\scripts\deploy-k8s.ps1
+
+# Or manually with Helm
+helm upgrade --install todoapp ./charts/todoapp --namespace todoapp --create-namespace
+```
+
+### Custom Values
+
+Override defaults by passing a values file:
+
+```powershell
+.\scripts\deploy-k8s.ps1 -ValuesFile "my-values.yaml"
+
+# Or with Helm directly
+helm upgrade --install todoapp ./charts/todoapp -n todoapp --values my-values.yaml
+```
+
+Example custom values:
+
+```yaml
+api:
+  replicaCount: 3
+  image:
+    repository: myregistry.azurecr.io/todoapp-api
+    tag: "v1.2.0"
+ingress:
+  host: todoapp.mycompany.com
+secrets:
+  connectionString: "Host=prod-db;Port=5432;Database=todoapp;Username=app;Password=secure-pw"
+```
+
+### Raw Manifests (kubectl)
+
+For environments without Helm, apply the raw manifests directly:
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+```
+
+### Architecture
+
+| Component | Type | Access |
+|-----------|------|--------|
+| API | Deployment (2 replicas) | ClusterIP → Ingress `/api` |
+| Frontend | Deployment (2 replicas) | ClusterIP → Ingress `/` |
+| PostgreSQL | StatefulSet + PVC | ClusterIP (internal) |
+| Redis | Deployment | ClusterIP (internal) |
+
+> 📖 See [ADR 013](docs/ADRs/013-kubernetes-orchestration.md) for the full decision record.
 
 ---
 
@@ -237,6 +311,7 @@ Obtain a token via `POST /api/auth/token`.
 | **CORS** | Configurable cross-origin resource sharing |
 | **OpenAPI/Swagger** | Auto-generated, interactive API documentation |
 | **Containerisation** | Docker multi-stage build with Compose orchestration |
+| **Kubernetes** | Helm chart with StatefulSets, Deployments, Ingress, and health probes |
 | **Integration Testing** | Testcontainers for disposable database instances |
 
 ---

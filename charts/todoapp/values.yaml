@@ -1,0 +1,103 @@
+# Default values for todoapp Helm chart
+
+# -- Global settings
+nameOverride: ""
+fullnameOverride: ""
+
+# -- API configuration
+api:
+  replicaCount: 2
+  image:
+    repository: todoapp-api
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    aspnetcoreEnvironment: "Production"
+
+# -- Frontend configuration
+frontend:
+  replicaCount: 2
+  image:
+    repository: todoapp-frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# -- PostgreSQL configuration
+postgres:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    port: 5432
+  storage:
+    size: 5Gi
+    storageClassName: ""
+  credentials:
+    database: todoapp
+    username: todoapp
+    # Password is stored in secrets - override via --set or values file
+    password: "changeme"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# -- Redis configuration
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    port: 6379
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# -- Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  host: todoapp.local
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  tls: []
+
+# -- Secrets
+secrets:
+  # Connection string for PostgreSQL
+  connectionString: "Host=postgres;Port=5432;Database=todoapp;Username=todoapp;Password=changeme"
+  # JWT signing key (minimum 32 characters)
+  jwtKey: "your-super-secret-jwt-key-min-32-chars!"
