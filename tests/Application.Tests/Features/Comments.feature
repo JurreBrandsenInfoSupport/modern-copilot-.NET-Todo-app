@@ -6,6 +6,7 @@ Feature: Comment Management
   Background:
     Given the application is running
     And a user "commentuser" exists
+    And I am authenticated as "commentuser"
     And a task "Commentable task" exists for the user
 
   Scenario: Add a comment to a task

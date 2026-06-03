@@ -6,6 +6,7 @@ Feature: Task Management
   Background:
     Given the application is running
     And a user "testuser" exists
+    And I am authenticated as "testuser"
 
   Scenario: Create a new task
     When I create a task with title "Buy groceries" for the user
@@ -28,3 +29,16 @@ Feature: Task Management
   Scenario: Create task for non-existent user fails
     When I create a task with title "Invalid task" for user id 9999
     Then the response status code should be 400
+
+  Scenario: Get tasks returns empty list when no tasks exist
+    When I request all tasks
+    Then the response status code should be 200
+    And the response should contain 0 tasks
+
+  Scenario: Create multiple tasks and retrieve all
+    Given I create a task with title "Task one" for the user
+    And I create a task with title "Task two" for the user
+    And I create a task with title "Task three" for the user
+    When I request all tasks
+    Then the response status code should be 200
+    And the response should contain 3 tasks
