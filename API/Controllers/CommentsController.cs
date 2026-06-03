@@ -1,11 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TodoApp.Application.CMT003Comments;
 
 namespace TodoApp.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableRateLimiting("fixed")]
     public class CommentsController : ControllerBase
     {
         private readonly IMediator _mediator;

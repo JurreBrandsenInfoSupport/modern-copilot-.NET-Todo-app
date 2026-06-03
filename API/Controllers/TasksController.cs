@@ -1,11 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TodoApp.Application.TSK001Tasks;
 
 namespace TodoApp.API.Controllers
 {
     [ApiController]
     [Route("api/tasks")]
+    [EnableRateLimiting("fixed")]
     public class TasksController : ControllerBase
     {
         private readonly IMediator _mediator;

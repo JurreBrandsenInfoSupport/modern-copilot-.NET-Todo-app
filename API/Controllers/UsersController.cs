@@ -1,11 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TodoApp.Application.USR002Users;
 
 namespace TodoApp.API.Controllers
 {
     [ApiController]
     [Route("api/users")]
+    [EnableRateLimiting("fixed")]
     public class UsersController : ControllerBase
     {
         private readonly IMediator _mediator;

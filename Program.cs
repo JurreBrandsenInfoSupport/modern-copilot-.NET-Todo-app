@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
+using System.Threading.RateLimiting;
 using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
@@ -35,9 +37,22 @@ builder.Services.AddCors(options =>
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy("Application is running."));
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = 429;
+    options.AddFixedWindowLimiter("fixed", opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 2;
+    });
+});
+
 var app = builder.Build();
 app.UseCors("DefaultCorsPolicy");
 app.UseSerilogRequestLogging();
+app.UseRateLimiter();
 app.MapControllers();
 
 var healthCheckOptions = new HealthCheckOptions
