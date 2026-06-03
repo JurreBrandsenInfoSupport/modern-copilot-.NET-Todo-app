@@ -1,10 +1,6 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using TodoApp.Infrastructure;
+using Microsoft.Extensions.Configuration;
 
 namespace TodoApp.API.Controllers
 {
@@ -12,52 +8,50 @@ namespace TodoApp.API.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly AppDbContext _dbContext;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
 
-        public AuthController(AppDbContext dbContext, IConfiguration configuration)
+        public AuthController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
-            _dbContext = dbContext;
+            _httpClientFactory = httpClientFactory;
             _configuration = configuration;
         }
 
         [HttpPost("token")]
         public async Task<IActionResult> GetToken([FromBody] LoginRequest request)
         {
-            var user = await _dbContext.Users
-                .FirstOrDefaultAsync(u => u.Username == request.Username);
+            var tokenEndpoint = _configuration["Keycloak:TokenEndpoint"]
+                ?? "http://localhost:8080/realms/todoapp/protocol/openid-connect/token";
+            var clientId = _configuration["Keycloak:FrontendClientId"] ?? "todo-frontend";
 
-            if (user == null)
-                return Unauthorized();
+            var client = _httpClientFactory.CreateClient("keycloak");
 
-            var key = _configuration["Jwt:Key"] ?? "ThisIsADemoSecretKeyThatShouldBeChanged123!";
-            var issuer = _configuration["Jwt:Issuer"] ?? "TodoApp";
-            var audience = _configuration["Jwt:Audience"] ?? "TodoApp";
-
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
+            var formData = new Dictionary<string, string>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Name, user.Username),
-                new Claim(ClaimTypes.Role, "User")
+                ["grant_type"] = "password",
+                ["client_id"] = clientId,
+                ["username"] = request.Username,
+                ["password"] = request.Password ?? "demo",
+                ["scope"] = "openid profile"
             };
 
-            var expiresAt = DateTime.UtcNow.AddMinutes(60);
+            var response = await client.PostAsync(tokenEndpoint, new FormUrlEncodedContent(formData));
 
-            var token = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
-                claims: claims,
-                expires: expiresAt,
-                signingCredentials: credentials);
+            if (!response.IsSuccessStatusCode)
+            {
+                return Unauthorized(new { error = "Invalid credentials" });
+            }
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            var content = await response.Content.ReadAsStringAsync();
+            var tokenResponse = JsonSerializer.Deserialize<JsonElement>(content);
 
-            return Ok(new { token = tokenString, expiresAt });
+            var accessToken = tokenResponse.GetProperty("access_token").GetString();
+            var expiresIn = tokenResponse.GetProperty("expires_in").GetInt32();
+            var expiresAt = DateTime.UtcNow.AddSeconds(expiresIn);
+
+            return Ok(new { token = accessToken, expiresAt });
         }
     }
 
-    public record LoginRequest(string Username);
+    public record LoginRequest(string Username, string? Password = null);
 }
